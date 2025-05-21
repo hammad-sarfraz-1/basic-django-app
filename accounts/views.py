@@ -1,26 +1,122 @@
-from django.shortcuts    import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout as django_logout
 from django.contrib.auth.decorators import login_required
-from .forms              import SignUpForm, LoginForm
+from django.contrib.auth.models import User
+from .forms import SignUpForm, LoginForm
 
-# Create your views here.
+# DRF imports
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import re
 
 
+# -------------------------------------
+# DRF Login API with Validation
+# -------------------------------------
+class LoginAPI(APIView):
+    def post(self, request):
+        username = request.data.get('username', '').strip()
+        password = request.data.get('password', '').strip()
+
+        if not username or not password:
+            return Response(
+                {'error': 'Username and password are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            return Response(
+                {'message': 'Logged in successfully'},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {'error': 'Invalid username or password.'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+
+# -------------------------------------
+# DRF Signup API with Validation
+# -------------------------------------
+class SignupAPI(APIView):
+    def post(self, request):
+        username = request.data.get('username', '').strip()
+        password = request.data.get('password', '').strip()
+        email = request.data.get('email', '').strip()
+
+        # Required fields check
+        if not username or not password or not email:
+            return Response(
+                {'error': 'Username, password, and email are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Username length
+        if len(username) < 4:
+            return Response(
+                {'error': 'Username must be at least 4 characters long.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Password strength
+        if len(password) < 6:
+            return Response(
+                {'error': 'Password must be at least 6 characters long.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Email format
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            return Response(
+                {'error': 'Invalid email format.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Uniqueness checks
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {'error': 'Username already exists.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {'error': 'Email already in use.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create user
+        try:
+            User.objects.create_user(username=username, password=password, email=email)
+            return Response(
+                {'message': 'User created successfully'},
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'User creation failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# -------------------------------------
+# Traditional Django Views
+# -------------------------------------
 def signup_view(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()  
-            # auto-login:
-            username=form.cleaned_data['username']
-            pwd=form.cleaned_data['password1']
-            user=authenticate(username=username, password=pwd)
+            form.save()
+            username = form.cleaned_data['username']
+            pwd = form.cleaned_data['password1']
+            user = authenticate(username=username, password=pwd)
             login(request, user)
-            return redirect('/')
+            return redirect('home')  # make sure 'home' is named in your URLs
     else:
-        form=SignUpForm()
+        form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
-
 
 
 def login_view(request):
@@ -28,18 +124,17 @@ def login_view(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
-            return redirect('/')
+            return redirect('home')
     else:
         form = LoginForm()
     return render(request, 'accounts/login.html', {'form': form})
 
 
-def logout(request):
-    logout(request)
-    return redirect('/accounts/login')
+def logout_view(request):
+    django_logout(request)
+    return redirect('login')  # make sure 'login' is named in your URLs
+
 
 @login_required
-
 def home_view(request):
-    return render(request, 'home.html',{'user': request.user})
-
+    return render(request, 'home.html', {'user': request.user})
