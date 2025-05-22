@@ -25,4 +25,11 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
 
     path('accounts/', include('accounts.urls')),  # all account URLs
+    
+    
+    # New store app
+    path('accounts/', include('accounts.urls')),
+    path('store/',    include('store.urls', namespace='store')),
+
+
 ]

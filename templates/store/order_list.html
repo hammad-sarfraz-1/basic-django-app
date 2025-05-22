@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order List</title>
+</head>
+<body>
+    <h1>Orders for {{ customer.name }}</h1>
+    <ul>
+        {% for order in orders %}
+            <li>
+                {{ order.product }} - Quantity: {{ order.quantity }} - Date: {{ order.created_at }}
+                [<a href="{% url 'store:delete_order' order.id %}">Delete</a>]
+            </li>
+        {% empty %}
+            <li>No orders found.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'store:create_order' customer.id %}">Create New Order</a>
+</body>
+</html>
