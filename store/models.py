@@ -15,7 +15,7 @@ class Customer(models.Model):
 
 
 class Order(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders') # CASCADE : Referential Integrity | 
     status = models.CharField(max_length=1, choices=[('P', 'Pending'), ('C', 'Completed'), ('F', 'Failed')], default='P')
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
