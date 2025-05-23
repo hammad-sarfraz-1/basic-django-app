@@ -100,10 +100,10 @@ class OrderDetailDeleteAPI(generics.RetrieveDestroyAPIView):
 class AdminCustomerListCreateAPI(generics.ListCreateAPIView):
     queryset = Customer.objects.all().order_by('-joined_on')
     serializer_class = CustomerSerializer
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [AllowAny]
 
 # Admin: retrieve, update, delete a customer
 class AdminCustomerDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [AllowAny]
