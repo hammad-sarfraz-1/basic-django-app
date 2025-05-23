@@ -11,6 +11,6 @@ class CustomerAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'order_date', 'status', 'total_price')
-    list_filter  = ('status', 'order_date')
+    list_display = ('id', 'customer', 'created_at', 'status', 'total_price')
+    list_filter  = ('status', 'created_at')
     search_fields = ('customer__first_name', 'customer__last_name')

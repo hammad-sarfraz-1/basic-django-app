@@ -6,7 +6,14 @@ class CustomerForm(forms.ModelForm):
         model  = Customer
         fields = ['first_name', 'last_name', 'email', 'phone', 'address']
 
+
+# class ProductForm(forms.ModelForm):
+#     class Meta:
+#         model  = Product
+#         fields = ['name', 'description', 'price']
+
+
 class OrderForm(forms.ModelForm):
     class Meta:
         model  = Order
-        fields = ['customer', 'status', 'total_price']
+        fields = ['customer', 'quantity', 'status']
