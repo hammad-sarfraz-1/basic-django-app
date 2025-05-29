@@ -1,4 +1,3 @@
-# views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
@@ -8,13 +7,16 @@ from django.views.generic.edit import CreateView
 from .forms import CustomerForm, OrderForm, ProductForm
 from .serializers import CustomerSerializer, OrderSerializer, ProductSerializer
 
+# DRF imports
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 # ------------------------------------------------------------------
-# Traditional Django Views
+# Traditional Django Views (Session-based)
 # ------------------------------------------------------------------
 
 def customer_list_create(request):
@@ -32,14 +34,12 @@ def customer_list_create(request):
         'form': form
     })
 
-
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     return render(request, 'store/customer_detail.html', {
         'customer': customer,
         'orders': customer.orders.all()
     })
-
 
 def order_list_or_detail(request, pk=None):
     if pk is not None:
@@ -48,7 +48,6 @@ def order_list_or_detail(request, pk=None):
     
     orders = Order.objects.select_related('customer').order_by('-order_date')
     return render(request, 'store/order_list.html', {'orders': orders})
-
 
 @csrf_exempt
 def order_create(request):
@@ -61,12 +60,14 @@ def order_create(request):
         form = OrderForm()
     return render(request, 'store/order_form.html', {'form': form})
 
+
 # ------------------------------------------------------------------
-# DRF API Views — Public APIs
+# DRF API Views — JWT Required
 # ------------------------------------------------------------------
 
 class CustomerListOrOrdersAPI(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         if pk:
@@ -77,9 +78,9 @@ class CustomerListOrOrdersAPI(APIView):
             serializer = CustomerSerializer(customers, many=True)
         return Response(serializer.data)
 
-
 class OrderAPI(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         if pk:
@@ -103,32 +104,38 @@ class OrderAPI(APIView):
         return Response({'detail': 'Order deleted'}, status=204)
 
 
-# # Class -based view for Product
 class ProductListCreateAPI(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
 class ProductDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------------------------------------------------------
-# DRF API Views — Admin-Only Endpoints
+# Admin-only endpoints (JWT Required)
 # ------------------------------------------------------------------
 
 class AdminCustomerListCreateAPI(generics.ListCreateAPIView):
     queryset = Customer.objects.all().order_by('-joined_on')
     serializer_class = CustomerSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
 class AdminCustomerDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
 
 # ------------------------------------------------------------------
-# Product Web views
+# Product Web Views (Session-based)
 # ------------------------------------------------------------------
 
 def product_list(request):
@@ -145,15 +152,11 @@ def product_create(request):
         form = ProductForm()
     return render(request, 'store/product_form.html', {'form': form})
 
+
+# Optional CreateView for product (not actively used)
 class ProductCreateView(CreateView):
     model = Product
     form_class = ProductForm
     template_name = 'store/product_form.html'
     success_url = reverse_lazy('product_add')
-    permission_classes = [AllowAny]
-
-# class ProductCreateView(CreateView):
-#     model = Product
-#     form_class = ProductForm
-#     template_name = 'store/product_form.html'
-#     success_url = reverse_lazy('product_add')  # Redirect to same page after adding
+    # Not API based, no JWT needed here

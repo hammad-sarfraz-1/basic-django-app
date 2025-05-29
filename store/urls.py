@@ -4,12 +4,10 @@ from django.urls import path
 # from .views import ProductCreateView
 
 from . import views
-# from .views import ProductCreateView
-
-# from rest_framework_simplejwt.views import (
-#     TokenObtainPairView,
-#     TokenRefreshView,
-# )
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 app_name = 'store'
 
@@ -41,6 +39,9 @@ urlpatterns = [
     # path('admin/add-product/', ProductCreateView.as_view(), name='product_add'),
     # path('admin/add-product/', ProductCreateView.as_view(), name='product_add'),
 
+    # API Endpoint - JWT
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # Login
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Refresh
 
 
 
