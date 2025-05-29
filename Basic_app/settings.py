@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'rest_framework',   
     'rest_framework.authtoken',
 
+    # adding JWT token
+    'rest_framework_simplejwt',
+
     # our app
     'accounts',
     'store',
@@ -150,7 +153,8 @@ CSRF_TRUSTED_ORIGINS = [
 # Rest framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        # 'rest_framework.permissions.authentication.',
+        'rest_framework_simplejwt.authetication.JWTAuthetication',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [],
 }

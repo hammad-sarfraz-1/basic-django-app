@@ -5,8 +5,8 @@ from django.urls import reverse_lazy
 
 from .models import Customer, Order, Product
 from django.views.generic.edit import CreateView
-from .forms import CustomerForm, OrderForm
-from .serializers import CustomerSerializer, OrderSerializer
+from .forms import CustomerForm, OrderForm, ProductForm
+from .serializers import CustomerSerializer, OrderSerializer, ProductSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -50,17 +50,16 @@ def order_list_or_detail(request, pk=None):
     return render(request, 'store/order_list.html', {'orders': orders})
 
 
-@csrf_exempt # no need for token, a security exemption
+@csrf_exempt
 def order_create(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('store:order_list_or_detail')
+            form.save()  
+            return redirect('store:order_list')
     else:
         form = OrderForm()
     return render(request, 'store/order_form.html', {'form': form})
-
 
 # ------------------------------------------------------------------
 # DRF API Views — Public APIs
@@ -87,7 +86,7 @@ class OrderAPI(APIView):
             order = get_object_or_404(Order, pk=pk)
             serializer = OrderSerializer(order)
         else:
-            orders = Order.objects.select_related('customer').order_by('-order_date')
+            orders = Order.objects.select_related('customer').order_by('created_at')
             serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
 
@@ -105,13 +104,13 @@ class OrderAPI(APIView):
 
 
 # # Class -based view for Product
-# class ProductListCreateAPI(generics.ListCreateAPIView):
-#     queryset = Product.objects.all()
-#     serializer_class = ProductSerializer
+class ProductListCreateAPI(generics.ListCreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
-# class ProductDetailAPI(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Product.objects.all()
-#     serializer_class = ProductSerializer
+class ProductDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
 
 # ------------------------------------------------------------------
@@ -132,26 +131,26 @@ class AdminCustomerDetailAPI(generics.RetrieveUpdateDestroyAPIView):
 # Product Web views
 # ------------------------------------------------------------------
 
-# def product_list(request):
-#     products = Product.objects.all()
-#     return render(request, 'store/product_list.html', {'products': products})
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'store/product_list.html', {'products': products})
 
-# def product_create(request):
-#     if request.method == 'POST':
-#         form = ProductForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('store:product_list')
-#     else:
-#         form = ProductForm()
-#     return render(request, 'store/product_form.html', {'form': form})
+def product_create(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('store:product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'store/product_form.html', {'form': form})
 
-# class ProductCreateView(CreateView):
-#     model = Product
-#     form_class = ProductForm
-#     template_name = 'store/product_form.html'
-#     success_url = reverse_lazy('product_add')
-#     permission_classes = [AllowAny]
+class ProductCreateView(CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'store/product_form.html'
+    success_url = reverse_lazy('product_add')
+    permission_classes = [AllowAny]
 
 # class ProductCreateView(CreateView):
 #     model = Product

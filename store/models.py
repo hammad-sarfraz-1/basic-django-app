@@ -16,6 +16,8 @@ class Product(models.Model):
     name        = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     price       = models.DecimalField(max_digits=10, decimal_places=2)
+    stock       = models.PositiveIntegerField()
+
 
     def __str__(self):
         return self.name
@@ -29,7 +31,7 @@ class Order(models.Model):
     ]
 
     customer    = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='orders')  # cascade -> if customer is deleted, all orders are deleted
-    product     = models.ForeignKey(Product,on_delete=models.PROTECT,related_name='orders',null=True) #protect-> if product is deleted then order will not be deleted
+    product     = models.ForeignKey(Product,on_delete=models.PROTECT,related_name='orders') #protect-> if product is deleted then order will not be deleted
     
     quantity    = models.PositiveIntegerField(default=1)
     status      = models.CharField(max_length=1,choices=STATUS_CHOICES,default='P')
@@ -38,10 +40,10 @@ class Order(models.Model):
                                       )
     created_at  = models.DateTimeField(auto_now_add=True)
 
-    # def save(self, *args, **kwargs):
-    #     # Auto-calculate total_price on every save
-    #     self.total_price = self.quantity * self.product.price
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        # Auto-calculate total_price on every save
+        self.total_price = self.quantity * self.product.price
+        super().save(*args, **kwargs)
 
-    # def __str__(self):
-    #     return f"Order #{self.id} – {self.product.name} x{self.quantity}"
+    def __str__(self):
+        return f"Order #{self.id} – {self.product.name} x{self.quantity}"

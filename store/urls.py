@@ -1,7 +1,15 @@
 # urls.py
 from django.urls import path
-from . import views
+# from . import views, ProductCreateView
+# from .views import ProductCreateView
 
+from . import views
+# from .views import ProductCreateView
+
+# from rest_framework_simplejwt.views import (
+#     TokenObtainPairView,
+#     TokenRefreshView,
+# )
 
 app_name = 'store'
 
@@ -10,8 +18,8 @@ urlpatterns = [
     path('customers/',                  views.customer_list_create, name='customer_list_create'),           
     path('customers/<int:pk>/',         views.customer_detail, name='customer_detail'),
     # Web Views - Products
-    # path('products/',            views.product_list,    name='product_list'),
-    # path('products/new/',        views.product_create,  name='product_create'),
+    path('products/',            views.product_list,    name='product_list'),
+    path('products/new/',        views.product_create,  name='product_create'),
 
 
     # Web Views - Orders
@@ -27,9 +35,10 @@ urlpatterns = [
 
     # API Endpoints - Products
 
-    # path('api/products/',               views.ProductListCreateAPI.as_view(), name='api-product-list-create'),
-    # path('api/products/<int:pk>/',      views.ProductDetailAPI.as_view(), name='api-product-detail'),
+    path('api/products/',               views.ProductListCreateAPI.as_view(), name='api-product-list-create'),
+    path('api/products/<int:pk>/',      views.ProductDetailAPI.as_view(), name='api-product-detail'),
 
+    # path('admin/add-product/', ProductCreateView.as_view(), name='product_add'),
     # path('admin/add-product/', ProductCreateView.as_view(), name='product_add'),
 
 
