@@ -1,69 +1,72 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-
-from .models import Customer, Order, Product
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
-from .forms import CustomerForm, OrderForm, ProductForm
-from .serializers import CustomerSerializer, OrderSerializer, ProductSerializer
-
-# DRF imports
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+# DRF imports
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from .forms import CustomerForm, OrderForm, ProductForm
+from .models import Customer, Order, Product
+from .serializers import CustomerSerializer, OrderSerializer, ProductSerializer
 
 # ------------------------------------------------------------------
 # Traditional Django Views (Session-based)
 # ------------------------------------------------------------------
 
+
 def customer_list_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('store:customer_list_create')
+            return redirect("store:customer_list_create")
     else:
         form = CustomerForm()
 
-    customers = Customer.objects.order_by('-joined_on')
-    return render(request, 'store/customer_list.html', {
-        'customers': customers,
-        'form': form
-    })
+    customers = Customer.objects.order_by("-joined_on")
+    return render(
+        request, "store/customer_list.html", {"customers": customers, "form": form}
+    )
+
 
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
-    return render(request, 'store/customer_detail.html', {
-        'customer': customer,
-        'orders': customer.orders.all()
-    })
+    return render(
+        request,
+        "store/customer_detail.html",
+        {"customer": customer, "orders": customer.orders.all()},
+    )
+
 
 def order_list_or_detail(request, pk=None):
     if pk is not None:
         order = get_object_or_404(Order, pk=pk)
-        return render(request, 'store/order_detail.html', {'order': order})
-    
-    orders = Order.objects.select_related('customer').order_by('-order_date')
-    return render(request, 'store/order_list.html', {'orders': orders})
+        return render(request, "store/order_detail.html", {"order": order})
+
+    orders = Order.objects.select_related("customer").order_by("-order_date")
+    return render(request, "store/order_list.html", {"orders": orders})
+
 
 @csrf_exempt
 def order_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = OrderForm(request.POST)
         if form.is_valid():
-            form.save()  
-            return redirect('store:order_list')
+            form.save()
+            return redirect("store:order_list")
     else:
         form = OrderForm()
-    return render(request, 'store/order_form.html', {'form': form})
+    return render(request, "store/order_form.html", {"form": form})
 
 
 # ------------------------------------------------------------------
 # DRF API Views — JWT Required
 # ------------------------------------------------------------------
+
 
 class CustomerListOrOrdersAPI(APIView):
     authentication_classes = [JWTAuthentication]
@@ -71,12 +74,13 @@ class CustomerListOrOrdersAPI(APIView):
 
     def get(self, request, pk=None):
         if pk:
-            orders = Order.objects.filter(customer_id=pk).order_by('-order_date')
+            orders = Order.objects.filter(customer_id=pk).order_by("-order_date")
             serializer = OrderSerializer(orders, many=True)
         else:
-            customers = Customer.objects.all().order_by('-joined_on')
+            customers = Customer.objects.all().order_by("-joined_on")
             serializer = CustomerSerializer(customers, many=True)
         return Response(serializer.data)
+
 
 class OrderAPI(APIView):
     authentication_classes = [JWTAuthentication]
@@ -87,7 +91,7 @@ class OrderAPI(APIView):
             order = get_object_or_404(Order, pk=pk)
             serializer = OrderSerializer(order)
         else:
-            orders = Order.objects.select_related('customer').order_by('created_at')
+            orders = Order.objects.select_related("customer").order_by("created_at")
             serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
 
@@ -101,7 +105,7 @@ class OrderAPI(APIView):
     def delete(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         order.delete()
-        return Response({'detail': 'Order deleted'}, status=204)
+        return Response({"detail": "Order deleted"}, status=204)
 
 
 class ProductListCreateAPI(generics.ListCreateAPIView):
@@ -109,6 +113,7 @@ class ProductListCreateAPI(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
 
 class ProductDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
@@ -121,11 +126,13 @@ class ProductDetailAPI(generics.RetrieveUpdateDestroyAPIView):
 # Admin-only endpoints (JWT Required)
 # ------------------------------------------------------------------
 
+
 class AdminCustomerListCreateAPI(generics.ListCreateAPIView):
-    queryset = Customer.objects.all().order_by('-joined_on')
+    queryset = Customer.objects.all().order_by("-joined_on")
     serializer_class = CustomerSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
 
 class AdminCustomerDetailAPI(generics.RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()
@@ -138,25 +145,27 @@ class AdminCustomerDetailAPI(generics.RetrieveUpdateDestroyAPIView):
 # Product Web Views (Session-based)
 # ------------------------------------------------------------------
 
+
 def product_list(request):
     products = Product.objects.all()
-    return render(request, 'store/product_list.html', {'products': products})
+    return render(request, "store/product_list.html", {"products": products})
+
 
 def product_create(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ProductForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('store:product_list')
+            return redirect("store:product_list")
     else:
         form = ProductForm()
-    return render(request, 'store/product_form.html', {'form': form})
+    return render(request, "store/product_form.html", {"form": form})
 
 
 # Optional CreateView for product (not actively used)
 class ProductCreateView(CreateView):
     model = Product
     form_class = ProductForm
-    template_name = 'store/product_form.html'
-    success_url = reverse_lazy('product_add')
+    template_name = "store/product_form.html"
+    success_url = reverse_lazy("product_add")
     # Not API based, no JWT needed here

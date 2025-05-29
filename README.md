@@ -39,7 +39,7 @@ In settings.py, update the DATABASES config:
             }
         }
 🚀 Run the Project
-            
+
         python manage.py makemigrations
         python manage.py migrate
         python manage.py createsuperuser  # Follow prompts
