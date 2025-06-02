@@ -12,6 +12,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .forms import CustomerForm, OrderForm, ProductForm
 from .models import Customer, Order, Product
 from .serializers import CustomerSerializer, OrderSerializer, ProductSerializer
+from django.views import View
+from django.shortcuts import render, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from .models import Product
+from .forms import ProductForm
 
 # ------------------------------------------------------------------
 # Traditional Django Views (Session-based)
@@ -137,31 +142,21 @@ class AdminCustomerViewSet(viewsets.ModelViewSet):
 
 
 
-# ------------------------------------------------------------------
-# Product Web Views (Session-based)
-# ------------------------------------------------------------------
 
+class ProductListCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        products = Product.objects.all()
+        form = ProductForm()
+        return render(request, "store/product_list.html", {"products": products, "form": form})
 
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, "store/product_list.html", {"products": products})
+    def post(self, request):
+        if not request.user.is_staff:
+            return redirect("store:product_list")  # Or raise permission denied
 
-
-def product_create(request):
-    if request.method == "POST":
         form = ProductForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect("store:product_list")
-    else:
-        form = ProductForm()
-    return render(request, "store/product_form.html", {"form": form})
 
-
-# Optional CreateView for product (not actively used)
-class ProductCreateView(CreateView):
-    model = Product
-    form_class = ProductForm
-    template_name = "store/product_form.html"
-    success_url = reverse_lazy("product_add")
-    # Not API based, no JWT needed here
+        products = Product.objects.all()
+        return render(request, "store/product_list.html", {"products": products, "form": form})

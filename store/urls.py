@@ -19,8 +19,7 @@ urlpatterns = [
     path("customers/<int:pk>/", views.customer_detail, name="customer_detail"),
 
     # Products
-    path("products/", views.product_list, name="product_list"),
-    path("products/new/", views.product_create, name="product_create"),
+    path("products/", views.ProductListCreateView.as_view(), name="product_list"),
 
     # Orders
     path("orders/", views.order_list_or_detail, name="order_list"),
