@@ -1,22 +1,19 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
+
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-# DRF imports
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .forms import CustomerForm, OrderForm, ProductForm
 from .models import Customer, Order, Product
 from .serializers import CustomerSerializer, OrderSerializer, ProductSerializer
-from django.views import View
-from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Product
-from .forms import ProductForm
 
 # ------------------------------------------------------------------
 # Traditional Django Views (Session-based)
