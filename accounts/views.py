@@ -1,5 +1,4 @@
 import re
-
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout as django_logout
 from django.contrib.auth.decorators import login_required
@@ -7,6 +6,10 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from rest_framework import status
 from rest_framework.response import Response
+# import jwt and refresh token
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 # DRF imports
 from rest_framework.views import APIView
 
@@ -17,6 +20,9 @@ from .forms import LoginForm, SignUpForm
 # DRF Login API with Validation
 # -------------------------------------
 class LoginAPI(APIView):
+    permission_classes = []
+    authentication_classes = []
+
     def post(self, request):
         username = request.data.get("username", "").strip()
         password = request.data.get("password", "").strip()
@@ -29,10 +35,17 @@ class LoginAPI(APIView):
 
         user = authenticate(username=username, password=password)
         if user:
-            login(request, user)
+            # Create JWT token
+            refresh = RefreshToken.for_user(user)
             return Response(
-                {"message": "Logged in successfully"}, status=status.HTTP_200_OK
+                {
+                    "message": "Logged in successfully",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                status=status.HTTP_200_OK,
             )
+
         return Response(
             {"error": "Invalid username or password."},
             status=status.HTTP_401_UNAUTHORIZED,

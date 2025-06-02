@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 # DRF imports
@@ -67,36 +67,47 @@ def order_create(request):
 # DRF API Views — JWT Required
 # ------------------------------------------------------------------
 
-
-class CustomerListOrOrdersAPI(APIView):
+# this function should only return the customers details
+class CustomerListAPI(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    serializer_class = CustomerSerializer
+    
+    def get(self, request, pk=None):
+        
+        customers = Customer.objects.all().order_by("id")
+        serializer = self.serializer_class(customers, many=True)
+        return Response(serializer.data)
+
+class CustomerSpecificOrders(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
 
     def get(self, request, pk=None):
-        if pk:
-            orders = Order.objects.filter(customer_id=pk).order_by("-order_date")
-            serializer = OrderSerializer(orders, many=True)
-        else:
-            customers = Customer.objects.all().order_by("-joined_on")
-            serializer = CustomerSerializer(customers, many=True)
+        customer = get_object_or_404(Customer, pk=pk)
+        orders = customer.orders.all().order_by("-created_at")
+        serializer = self.serializer_class(orders, many=True)
         return Response(serializer.data)
+    
 
 
 class OrderAPI(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []
+    permission_classes = []
+    serializer_class = OrderSerializer
 
     def get(self, request, pk=None):
         if pk:
             order = get_object_or_404(Order, pk=pk)
-            serializer = OrderSerializer(order)
+            serializer = self.serializer_class(order)
         else:
             orders = Order.objects.select_related("customer").order_by("created_at")
-            serializer = OrderSerializer(orders, many=True)
+            serializer = self.serializer_class(orders, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = OrderSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
@@ -108,37 +119,22 @@ class OrderAPI(APIView):
         return Response({"detail": "Order deleted"}, status=204)
 
 
-class ProductListCreateAPI(generics.ListCreateAPIView):
+class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
-
-class ProductDetailAPI(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
 
 # ------------------------------------------------------------------
 # Admin-only endpoints (JWT Required)
 # ------------------------------------------------------------------
 
-
-class AdminCustomerListCreateAPI(generics.ListCreateAPIView):
-    queryset = Customer.objects.all().order_by("-joined_on")
-    serializer_class = CustomerSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-
-class AdminCustomerDetailAPI(generics.RetrieveUpdateDestroyAPIView):
+class AdminCustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
 
 
 # ------------------------------------------------------------------
