@@ -19,8 +19,8 @@ static_root/
 local_settings.py
 
 # If using Django migrations
-**/migrations/*.pyc
-**/migrations/__pycache__/
+# **/migrations/*.pyc
+# **/migrations/__pycache__/
 **/migrations/*.py
 
 # Environment variables
