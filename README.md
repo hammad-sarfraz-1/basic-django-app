@@ -1,15 +1,15 @@
-# 🛡️ Django Authentication Project
+# Django Authentication Project
 
 A simple Django project with login, signup, and logout functionality using PostgreSQL and Django REST Framework.
 
-## 📦 Technologies Used
+## Technologies Used
 
 - Django 5.2
 - Django REST Framework
 - PostgreSQL
 - HTML Templates
 
-## 🛠️ Setup Instructions
+## Setup Instructions
 
 1. Clone the Repository
 
@@ -31,7 +31,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 🗃️ Database Configuration (PostgreSQL)
+## Database Configuration (PostgreSQL)
 
 In your PostgreSQL terminal:
 
@@ -56,7 +56,7 @@ DATABASES = {
 }
 ```
 
-## 🚀 Run the Project
+## Run the Project
 
 ```bash
 python manage.py makemigrations
@@ -67,15 +67,9 @@ python manage.py runserver
 
 Visit: [http://127.0.0.1:8000/accounts/signup/](http://127.0.0.1:8000/accounts/signup/)
 
-## 🔐 API Endpoints
 
-| Method | Endpoint              | Description           |
-|--------|-----------------------|-----------------------|
-| POST   | /accounts/api/signup/  | API for user signup   |
-| POST   | /accounts/api/login/   | API for user login    |
-| GET    | /accounts/home/        | Home page (protected) |
 
-## 🛡️ CSRF Trusted Origins
+## CSRF Trusted Origins
 
 Add the following to your `settings.py`:
 
@@ -88,34 +82,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 Make sure `{% csrf_token %}` is included inside all HTML `<form>` elements.
 
-## 🧾 Example API Requests
-
-### Signup
-
-```
-POST /accounts/api/signup/
-Content-Type: application/json
-
-{
-  "username": "john",
-  "password": "test1234",
-  "email": "john@example.com"
-}
-```
-
-### Login
-
-```
-POST /accounts/api/login/
-Content-Type: application/json
-
-{
-  "username": "john",
-  "password": "test1234"
-}
-```
-
-## 🧰 Project Structure
+##  Project Structure
 
 ```
 project/
