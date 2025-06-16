@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user1
+      POSTGRES_PASSWORD: 123456
+
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+
+    volumes:
+      - .:/app
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db
+
+    environment:
+      - DEBUG=1
+      - DB_NAME=db
+      - DB_USER=user1
+      - DB_PASSWORD=123456
+      - DB_HOST=db
+      - DB_PORT=5432
+
+      
+
+volumes:
+  postgres_data:
+
