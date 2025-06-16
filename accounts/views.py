@@ -16,6 +16,7 @@ from django.shortcuts import render
 def home_view(request):
     return render(request, "home.html", {"user": request.user})
 
+
 class AuthViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]  # Public access
 
@@ -25,11 +26,14 @@ class AuthViewSet(viewsets.ViewSet):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             refresh = RefreshToken.for_user(user)
-            return Response({
-                "message": "Logged in successfully",
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": "Logged in successfully",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                status=status.HTTP_200_OK,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="signup")
@@ -38,9 +42,12 @@ class AuthViewSet(viewsets.ViewSet):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
-            return Response({
-                "message": "User created successfully",
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-            }, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "message": "User created successfully",
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

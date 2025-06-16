@@ -69,17 +69,19 @@ def order_create(request):
 # DRF API Views — JWT Required
 # ------------------------------------------------------------------
 
+
 # this function should only return the customers details
 class CustomerListAPI(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = CustomerSerializer
-    
+
     def get(self, request, pk=None):
-        
+
         customers = Customer.objects.all().order_by("id")
         serializer = self.serializer_class(customers, many=True)
         return Response(serializer.data)
+
 
 class CustomerSpecificOrders(APIView):
     authentication_classes = [JWTAuthentication]
@@ -91,7 +93,6 @@ class CustomerSpecificOrders(APIView):
         orders = customer.orders.all().order_by("-created_at")
         serializer = self.serializer_class(orders, many=True)
         return Response(serializer.data)
-    
 
 
 class OrderAPI(APIView):
@@ -127,9 +128,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+
 # ------------------------------------------------------------------
 # Admin-only endpoints (JWT Required)
 # ------------------------------------------------------------------
+
 
 class AdminCustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
@@ -138,13 +141,13 @@ class AdminCustomerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-
-
 class ProductListCreateView(LoginRequiredMixin, View):
     def get(self, request):
         products = Product.objects.all()
         form = ProductForm()
-        return render(request, "store/product_list.html", {"products": products, "form": form})
+        return render(
+            request, "store/product_list.html", {"products": products, "form": form}
+        )
 
     def post(self, request):
         if not request.user.is_staff:
@@ -156,4 +159,6 @@ class ProductListCreateView(LoginRequiredMixin, View):
             return redirect("store:product_list")
 
         products = Product.objects.all()
-        return render(request, "store/product_list.html", {"products": products, "form": form})
+        return render(
+            request, "store/product_list.html", {"products": products, "form": form}
+        )

@@ -13,7 +13,10 @@ class SignUpForm(UserCreationForm):
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=254, label="Username")
-    password = forms.CharField(max_length=128, label="Password", widget=forms.PasswordInput)
+    password = forms.CharField(
+        max_length=128, label="Password", widget=forms.PasswordInput
+    )
+
     # remember_me = forms.BooleanField(required=False, label="Remember me")
     class Meta:
         model = User
